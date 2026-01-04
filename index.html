@@ -5,134 +5,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎲MonGolia 주사위 게임🎲</title>
     <style>
-        body { font-family: 'Pretendard', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #f8f9fa; margin: 0; padding: 20px; box-sizing: border-box; }
-        .container { width: 100%; max-width: 500px; text-align: center; background: white; padding: 1.5rem; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        body { 
+            font-family: 'Pretendard', -apple-system, sans-serif; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            min-height: 100vh; background-color: #f0f3f7; margin: 0; padding: 20px; box-sizing: border-box; 
+        }
+        .container { 
+            width: 100%; max-width: 450px; text-align: center; background: white; 
+            padding: 2rem; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+        }
         
-        /* 주사위 컨테이너: 개수가 많으면 줄바꿈 허용 */
+        /* 주사위 컨테이너 및 반응형 배치 */
         #dice-container { 
-            display: flex; 
-            gap: 12px; 
-            justify-content: center; 
-            align-items: center;
-            flex-wrap: wrap; /* 주사위가 많으면 다음 줄로 넘어가게 함 */
-            margin: 30px 0; 
-            min-height: 120px; 
+            display: flex; gap: 15px; justify-content: center; align-items: center;
+            flex-wrap: wrap; margin: 40px 0; min-height: 180px;
+            perspective: 1000px; /* 3D 효과를 위한 원근감 */
         }
 
-        /* 주사위 기본 스타일 */
+        /* 주사위 본체 스타일 */
         .dice { 
-            background: white; 
-            border: 3px solid #333; 
-            border-radius: 15px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 2rem; 
-            font-weight: bold;
-            box-shadow: 0 6px 0 #333, 0 10px 20px rgba(0,0,0,0.2); /* 하단 두께감으로 3D 느낌 */
-            transition: all 0.2s ease;
-            transform-style: preserve-3d; /* 3D 효과 유지 */
+            background: white; border: 2px solid #333; border-radius: 12px; 
+            display: grid; padding: 8px; box-sizing: border-box;
+            grid-template-areas: "a . b" "c d e" "f . g";
+            grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
+            width: 80px; height: 80px;
+            box-shadow: 0 6px 0 #333, 0 10px 20px rgba(0,0,0,0.15);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
         }
 
-        /* 주사위ver.2 */
-        .dice { 
-            background: white; 
-            border: 3px solid #333; 
-            border-radius: 15px; 
-            display: grid; /* Grid 사용 */
-            grid-template-areas:
-                "a . b"
-                "c d e"
-                "f . g";
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            padding: 8px;
-            width: 80px; height: 80px; 
-            box-sizing: border-box;
-            box-shadow: 0 6px 0 #333;
-            transition: all 0.2s ease;
+        /* 점(Dot) 스타일 */
+        .dot { 
+            background-color: #333; border-radius: 50%; width: 14px; height: 14px; 
+            align-self: center; justify-self: center; 
         }
-        
-        /* 주사위 점 스타일 */
-        .dot {
-            background-color: #333;
-            border-radius: 50%;
-            width: 14px;
-            height: 14px;
-            align-self: center;
-            justify-self: center;
-        }
-        
-        /* 굴러갈 때 점 색상 변경 */
-        .rolling .dot { background-color: #ff4757; }
-        
-        /* 4개 이상일 때 주사위 크기 조정 */
-        .size-small { width: 65px; height: 65px; padding: 5px; }
-        .size-small .dot { width: 10px; height: 10px; }
 
-        /* 주사위 개수에 따른 크기 최적화 */
-        .size-large { width: 85px; height: 85px; font-size: 2.2rem; }
-        .size-small { width: 70px; height: 70px; font-size: 1.8rem; }
-        
-        /* 굴러가는 애니메이션 */
-        /*.rolling { animation: shake 0.15s infinite; color: #ff4757; border-color: #ff4757; box-shadow: 4px 4px 0px #ff4757; }
-        @keyframes shake {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(10deg) scale(1.05); }
-            75% { transform: rotate(-10deg) scale(0.95); }
-            100% { transform: rotate(0deg); }
-        }*/
+        /* 굴러가는 애니메이션 (물리 효과 적용) */
         .rolling { 
-            animation: realRoll 0.15s infinite alternate ease-in-out; 
-            color: #ff4757; 
+            animation: realRoll 0.18s infinite alternate ease-in-out; 
             border-color: #ff4757; 
         }
-        
+        .rolling .dot { background-color: #ff4757; }
+
         @keyframes realRoll {
-            0% { 
-                transform: translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
-                box-shadow: 0 6px 0 #333, 0 10px 20px rgba(0,0,0,0.2);
-            }
-            100% { 
-                /* 공중으로 튀어오르며 크기가 살짝 커지고 회전함 */
-                transform: translateY(-35px) rotateX(180deg) rotateY(180deg) scale(1.1);
-                box-shadow: 0 40px 30px rgba(0,0,0,0.1); /* 공중에 떴을 때 그림자 흐릿하게 */
-            }
+            0% { transform: translateY(0) rotateX(0deg) rotateY(0deg); box-shadow: 0 6px 0 #333; }
+            100% { transform: translateY(-40px) rotateX(180deg) rotateY(180deg); box-shadow: 0 40px 30px rgba(0,0,0,0.1); }
         }
 
-        .controls { margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn { padding: 12px 20px; font-size: 1rem; cursor: pointer; border: none; border-radius: 12px; background: #333; color: white; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
-        .btn:active { transform: scale(0.92); }
-        .btn:disabled { background: #eee; color: #999; cursor: not-allowed; }
-        
-        #roll-btn { background: #4834d4; font-weight: bold; width: 100%; max-width: 250px; height: 60px; font-size: 1.2rem; margin-top: 10px; }
-        #roll-btn.charging { background: #eb4d4b; animation: pulse 0.5s infinite; }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.03); }
-            100% { transform: scale(1); }
+        /* 주사위 개수에 따른 크기 조정 */
+        .size-small { width: 65px; height: 65px; padding: 6px; }
+        .size-small .dot { width: 10px; height: 10px; }
+
+        /* 컨트롤 영역 */
+        .controls { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 25px; }
+        .btn { 
+            padding: 12px 24px; font-size: 1rem; cursor: pointer; border: none; 
+            border-radius: 15px; background: #333; color: white; font-weight: bold;
+            transition: 0.2s; -webkit-tap-highlight-color: transparent;
         }
+        .btn:active { transform: scale(0.92); }
+        .btn:disabled { background: #eee; color: #aaa; }
         
-        .status { margin-top: 15px; color: #666; font-size: 0.95rem; font-weight: 500; }
+        #roll-btn { background: #4834d4; width: 100%; max-width: 280px; height: 65px; font-size: 1.2rem; }
+        #roll-btn.charging { background: #eb4d4b; animation: pulse 0.5s infinite; }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        
+        .status { margin-top: 20px; color: #777; font-size: 0.95rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="margin-top:0">🎲MonGolia 주사위 게임🎲</h2>
-    
-    <div class="controls">
+    <h2 style="margin-top:0; color:#333;">🎲 3D 주사위 챌린지</h2>
+🎲MonGolia 주사위 게임🎲<div class="controls">
         <button class="btn" onclick="updateDiceCount(-1)">－</button>
-        <div style="min-width: 80px;">
-            <span id="dice-count-display" style="font-size: 1.6rem; font-weight: 800;">2</span>개
-        </div>
+        <span id="dice-count-display" style="font-size: 1.8rem; font-weight: 800; min-width: 30px;">2</span>
         <button class="btn" onclick="updateDiceCount(1)">＋</button>
     </div>
 
     <div id="dice-container"></div>
 
     <button id="roll-btn" class="btn" onclick="handleRollClick()">주사위 굴리기</button>
-    <div class="status" id="status-text">빠르게 5번 누르세요! (0/5)</div>
+    <div class="status" id="status-text">3초 안에 5번 누르세요! (0/5)</div>
 </div>
 
 <script>
@@ -141,17 +96,35 @@
     let timer = null;
     let isRolling = false;
 
+    // 주사위 숫자별 점 위치 정의
+    const dotPositions = {
+        1: ['d'],
+        2: ['a', 'g'],
+        3: ['a', 'd', 'g'],
+        4: ['a', 'b', 'f', 'g'],
+        5: ['a', 'b', 'd', 'f', 'g'],
+        6: ['a', 'b', 'c', 'e', 'f', 'g']
+    };
+
+    function setDiceDots(diceElement, number) {
+        diceElement.innerHTML = '';
+        dotPositions[number].forEach(pos => {
+            const dot = document.createElement('div');
+            dot.className = 'dot';
+            dot.style.gridArea = pos;
+            diceElement.appendChild(dot);
+        });
+    }
+
     function initDice() {
         const container = document.getElementById('dice-container');
         container.innerHTML = '';
-        
-        // 개수가 4개 이상이면 크기를 줄임
-        const sizeClass = diceCount >= 4 ? 'size-small' : 'size-large';
+        const sizeClass = diceCount >= 4 ? 'size-small' : '';
 
         for (let i = 0; i < diceCount; i++) {
             const dice = document.createElement('div');
             dice.className = `dice ${sizeClass}`;
-            dice.innerText = '?';
+            setDiceDots(dice, 1); // 기본 1로 설정
             container.appendChild(dice);
         }
     }
@@ -177,12 +150,12 @@
             timer = setTimeout(() => {
                 if (clickCount < 5) {
                     resetClicks();
-                    alert("시간 초과! 더 빨리 누르세요!");
+                    alert("실패! 더 빠르게 연타하세요!");
                 }
-            }, 2000);
+            }, 3000);
         }
 
-        status.innerText = `빠르게 5번 누르세요! (${clickCount}/5)`;
+        status.innerText = `3초 안에 5번 누르세요! (${clickCount}/5)`;
 
         if (clickCount >= 5) {
             clearTimeout(timer);
@@ -192,8 +165,9 @@
 
     function resetClicks() {
         clickCount = 0;
-        document.getElementById('roll-btn').classList.remove('charging');
-        document.getElementById('status-text').innerText = "빠르게 5번 누르세요! (0/5)";
+        const btn = document.getElementById('roll-btn');
+        btn.classList.remove('charging');
+        document.getElementById('status-text').innerText = "3초 안에 5번 누르세요! (0/5)";
     }
 
     function startRolling() {
@@ -201,28 +175,23 @@
         const diceElements = document.querySelectorAll('.dice');
         const btn = document.getElementById('roll-btn');
         btn.disabled = true;
-        btn.innerText = "굴리는 중...";
-    
-        diceElements.forEach((d, index) => {
-            // 각 주사위마다 0.0x초씩 차이를 두어 자연스럽게 만듭니다.
-            const delay = Math.random() * 0.1;
-            d.style.animationDelay = `${delay}s`; 
+        btn.innerText = "굴러가는 중...";
+
+        diceElements.forEach((d) => {
+            d.style.animationDelay = `${Math.random() * 0.1}s`;
             d.classList.add('rolling');
         });
-    
-        // 1.2초 뒤 결과 도출
+
         setTimeout(() => {
             diceElements.forEach(d => {
                 d.classList.remove('rolling');
-                d.style.animationDelay = "0s"; // 딜레이 초기화
-                
+                d.style.animationDelay = "0s";
                 const num = Math.floor(Math.random() * 6) + 1;
-                setDiceDots(d, num); // 이전에 만든 점(Dot) 생성 함수 호출
+                setDiceDots(d, num);
                 
-                // 멈출 때 바닥에 '착' 붙는 느낌을 위해 랜덤 각도 부여
-                const rX = Math.random() * 20 - 10;
-                const rY = Math.random() * 20 - 10;
-                d.style.transform = `translateY(0) rotateX(${rX}deg) rotateY(${rY}deg)`;
+                const rX = Math.random() * 24 - 12;
+                const rY = Math.random() * 24 - 12;
+                d.style.transform = `rotateX(${rX}deg) rotateY(${rY}deg) rotateZ(${Math.random() * 10 - 5}deg)`;
             });
             
             isRolling = false;
@@ -237,7 +206,3 @@
 
 </body>
 </html>
-
-
-
-
