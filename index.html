@@ -59,8 +59,8 @@
         /* 컨트롤 영역 */
         .controls { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 25px; }
         .btn { 
-            padding: 12px 24px; font-size: 1rem; cursor: pointer; border: none; 
-            border-radius: 15px; background: #333; color: white; font-weight: bold;
+            padding: 7px 15px; font-size: 1rem; cursor: pointer; border: none; 
+            border-radius: 10px; background: #333; color: white; font-weight: bold;
             transition: 0.2s; -webkit-tap-highlight-color: transparent;
         }
         .btn:active { transform: scale(0.92); }
@@ -79,7 +79,7 @@
 <div class="container">
     <h2 style="margin-top:0; color:#333;">🎲MonGolia Dice🎲</h2> <div class="controls">
         <button class="btn" onclick="updateDiceCount(-1)">－</button>
-        <span id="dice-count-display" style="font-size: 1.8rem; font-weight: 800; min-width: 30px;">2</span>
+        <span id="dice-count-display" style="font-size: 1rem; font-weight: 1100; min-width: 20px;">1</span>
         <button class="btn" onclick="updateDiceCount(1)">＋</button>
     </div>
 
@@ -115,28 +115,46 @@
         });
     }
 
-    function initDice() {
+    // 초기화 및 개수 변경 시 실행되는 함수
+function initDice() {
+    const container = document.getElementById('dice-container');
+    container.innerHTML = '';
+    const sizeClass = diceCount >= 4 ? 'size-small' : '';
+
+    for (let i = 0; i < diceCount; i++) {
+        const dice = document.createElement('div');
+        dice.className = `dice ${sizeClass}`;
+        
+        // [수정 포인트] 생성될 때마다 1~6 사이의 랜덤 숫자를 부여함
+        const startNum = Math.floor(Math.random() * 6) + 1;
+        setDiceDots(dice, startNum); 
+        
+        // 시각적으로 새로 생긴 느낌을 주기 위해 살짝 랜덤 각도 부여
+        const rX = Math.random() * 20 - 10;
+        const rY = Math.random() * 20 - 10;
+        dice.style.transform = `rotateX(${rX}deg) rotateY(${rY}deg)`;
+        
+        container.appendChild(dice);
+    }
+}
+
+// 개수 조절 함수
+function updateDiceCount(val) {
+    if (isRolling) return;
+    const newCount = diceCount + val;
+    if (newCount >= 2 && newCount <= 5) {
+        diceCount = newCount;
+        document.getElementById('dice-count-display').innerText = diceCount;
+        
+        // 개수가 바뀔 때마다 initDice가 호출되어 랜덤하게 리셋됨
+        initDice(); 
+        
+        // 리셋될 때 짧은 진동 효과 (선택 사항)
         const container = document.getElementById('dice-container');
-        container.innerHTML = '';
-        const sizeClass = diceCount >= 4 ? 'size-small' : '';
-
-        for (let i = 0; i < diceCount; i++) {
-            const dice = document.createElement('div');
-            dice.className = `dice ${sizeClass}`;
-            setDiceDots(dice, 1); // 기본 1로 설정
-            container.appendChild(dice);
-        }
+        container.style.transform = 'scale(0.98)';
+        setTimeout(() => container.style.transform = 'scale(1)', 100);
     }
-
-    function updateDiceCount(val) {
-        if (isRolling) return;
-        const newCount = diceCount + val;
-        if (newCount >= 2 && newCount <= 5) {
-            diceCount = newCount;
-            document.getElementById('dice-count-display').innerText = diceCount;
-            initDice();
-        }
-    }
+}
 
     function handleRollClick() {
         if (isRolling) return;
@@ -205,4 +223,3 @@
 
 </body>
 </html>
-
