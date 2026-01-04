@@ -20,7 +20,7 @@
         }
 
         /* 주사위 기본 스타일 */
-        .dice { 
+        /*.dice { 
             background: white; 
             border: 3px solid #333; 
             border-radius: 15px; 
@@ -32,7 +32,43 @@
             box-shadow: 0 6px 0 #333, 0 10px 20px rgba(0,0,0,0.2); /* 하단 두께감으로 3D 느낌 */
             transition: all 0.2s ease;
             transform-style: preserve-3d; /* 3D 효과 유지 */
+        }*/
+
+        /* 주사위ver.2 */
+        .dice { 
+            background: white; 
+            border: 3px solid #333; 
+            border-radius: 15px; 
+            display: grid; /* Grid 사용 */
+            grid-template-areas:
+                "a . b"
+                "c d e"
+                "f . g";
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            padding: 8px;
+            width: 80px; height: 80px; 
+            box-sizing: border-box;
+            box-shadow: 0 6px 0 #333;
+            transition: all 0.2s ease;
         }
+        
+        /* 주사위 점 스타일 */
+        .dot {
+            background-color: #333;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            align-self: center;
+            justify-self: center;
+        }
+        
+        /* 굴러갈 때 점 색상 변경 */
+        .rolling .dot { background-color: #ff4757; }
+        
+        /* 4개 이상일 때 주사위 크기 조정 */
+        .size-small { width: 65px; height: 65px; padding: 5px; }
+        .size-small .dot { width: 10px; height: 10px; }
 
         /* 주사위 개수에 따른 크기 최적화 */
         .size-large { width: 85px; height: 85px; font-size: 2.2rem; }
@@ -186,4 +222,5 @@
 
 </body>
 </html>
+
 
