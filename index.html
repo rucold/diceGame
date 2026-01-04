@@ -20,7 +20,7 @@
         }
 
         /* 주사위 기본 스타일 */
-        /*.dice { 
+        .dice { 
             background: white; 
             border: 3px solid #333; 
             border-radius: 15px; 
@@ -32,7 +32,7 @@
             box-shadow: 0 6px 0 #333, 0 10px 20px rgba(0,0,0,0.2); /* 하단 두께감으로 3D 느낌 */
             transition: all 0.2s ease;
             transform-style: preserve-3d; /* 3D 효과 유지 */
-        }*/
+        }
 
         /* 주사위ver.2 */
         .dice { 
@@ -82,19 +82,22 @@
             75% { transform: rotate(-10deg) scale(0.95); }
             100% { transform: rotate(0deg); }
         }*/
-        .rolling { //3D느낌
-            animation: roll3D 0.15s infinite linear; 
+        .rolling { 
+            animation: realRoll 0.15s infinite alternate ease-in-out; 
             color: #ff4757; 
             border-color: #ff4757; 
-            box-shadow: 0 0px 0 #ff4757, 0 5px 15px rgba(255,71,87,0.4); 
         }
-
-        @keyframes roll3D {
-            0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateY(0); }
-            25% { transform: rotateX(90deg) rotateY(45deg) rotateZ(10deg) translateY(-10px); }
-            50% { transform: rotateX(180deg) rotateY(90deg) rotateZ(-10deg) translateY(-20px); }
-            75% { transform: rotateX(270deg) rotateY(135deg) rotateZ(5deg) translateY(-10px); }
-            100% { transform: rotateX(360deg) rotateY(180deg) rotateZ(0deg) translateY(0); }
+        
+        @keyframes realRoll {
+            0% { 
+                transform: translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
+                box-shadow: 0 6px 0 #333, 0 10px 20px rgba(0,0,0,0.2);
+            }
+            100% { 
+                /* 공중으로 튀어오르며 크기가 살짝 커지고 회전함 */
+                transform: translateY(-35px) rotateX(180deg) rotateY(180deg) scale(1.1);
+                box-shadow: 0 40px 30px rgba(0,0,0,0.1); /* 공중에 떴을 때 그림자 흐릿하게 */
+            }
         }
 
         .controls { margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 10px; }
@@ -199,15 +202,27 @@
         const btn = document.getElementById('roll-btn');
         btn.disabled = true;
         btn.innerText = "굴리는 중...";
-
-        diceElements.forEach(d => d.classList.add('rolling'));
-
+    
+        diceElements.forEach((d, index) => {
+            // 각 주사위마다 0.0x초씩 차이를 두어 자연스럽게 만듭니다.
+            const delay = Math.random() * 0.1;
+            d.style.animationDelay = `${delay}s`; 
+            d.classList.add('rolling');
+        });
+    
+        // 1.2초 뒤 결과 도출
         setTimeout(() => {
             diceElements.forEach(d => {
                 d.classList.remove('rolling');
-                d.innerText = Math.floor(Math.random() * 6) + 1;
-                // 랜덤한 각도로 멈춰서 자연스럽게 연출
-                d.style.transform = `rotate(${Math.random() * 16 - 8}deg)`;
+                d.style.animationDelay = "0s"; // 딜레이 초기화
+                
+                const num = Math.floor(Math.random() * 6) + 1;
+                setDiceDots(d, num); // 이전에 만든 점(Dot) 생성 함수 호출
+                
+                // 멈출 때 바닥에 '착' 붙는 느낌을 위해 랜덤 각도 부여
+                const rX = Math.random() * 20 - 10;
+                const rY = Math.random() * 20 - 10;
+                d.style.transform = `translateY(0) rotateX(${rX}deg) rotateY(${rY}deg)`;
             });
             
             isRolling = false;
@@ -222,5 +237,6 @@
 
 </body>
 </html>
+
 
 
