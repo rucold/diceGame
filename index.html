@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>반응형 주사위 굴리기</title>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #f8f9fa; margin: 0; padding: 20px; box-sizing: border-box; }
+        .container { width: 100%; max-width: 500px; text-align: center; background: white; padding: 1.5rem; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        
+        /* 주사위 컨테이너: 개수가 많으면 줄바꿈 허용 */
+        #dice-container { 
+            display: flex; 
+            gap: 12px; 
+            justify-content: center; 
+            align-items: center;
+            flex-wrap: wrap; /* 주사위가 많으면 다음 줄로 넘어가게 함 */
+            margin: 30px 0; 
+            min-height: 120px; 
+        }
+
+        /* 주사위 기본 스타일 */
+        .dice { 
+            background: white; 
+            border: 3px solid #333; 
+            border-radius: 15px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 2rem; 
+            font-weight: bold;
+            box-shadow: 4px 4px 0px #333;
+            transition: all 0.2s ease;
+        }
+
+        /* 주사위 개수에 따른 크기 최적화 */
+        .size-large { width: 85px; height: 85px; font-size: 2.2rem; }
+        .size-small { width: 70px; height: 70px; font-size: 1.8rem; }
+        
+        /* 굴러가는 애니메이션 */
+        .rolling { animation: shake 0.15s infinite; color: #ff4757; border-color: #ff4757; box-shadow: 4px 4px 0px #ff4757; }
+        @keyframes shake {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(5deg) scale(1.05); }
+            75% { transform: rotate(-5deg) scale(0.95); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .controls { margin-bottom: 25px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn { padding: 12px 20px; font-size: 1rem; cursor: pointer; border: none; border-radius: 12px; background: #333; color: white; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
+        .btn:active { transform: scale(0.92); }
+        .btn:disabled { background: #eee; color: #999; cursor: not-allowed; }
+        
+        #roll-btn { background: #4834d4; font-weight: bold; width: 100%; max-width: 250px; height: 60px; font-size: 1.2rem; margin-top: 10px; }
+        #roll-btn.charging { background: #eb4d4b; animation: pulse 0.5s infinite; }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+        
+        .status { margin-top: 15px; color: #666; font-size: 0.95rem; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 style="margin-top:0">🎲 주사위 연타 챌린지</h2>
+    
+    <div class="controls">
+        <button class="btn" onclick="updateDiceCount(-1)">－</button>
+        <div style="min-width: 80px;">
+            <span id="dice-count-display" style="font-size: 1.6rem; font-weight: 800;">2</span>개
+        </div>
+        <button class="btn" onclick="updateDiceCount(1)">＋</button>
+    </div>
+
+    <div id="dice-container"></div>
+
+    <button id="roll-btn" class="btn" onclick="handleRollClick()">주사위 굴리기</button>
+    <div class="status" id="status-text">3초 안에 5번 누르세요! (0/5)</div>
+</div>
+
+<script>
+    let diceCount = 2;
+    let clickCount = 0;
+    let timer = null;
+    let isRolling = false;
+
+    function initDice() {
+        const container = document.getElementById('dice-container');
+        container.innerHTML = '';
+        
+        // 개수가 4개 이상이면 크기를 줄임
+        const sizeClass = diceCount >= 4 ? 'size-small' : 'size-large';
+
+        for (let i = 0; i < diceCount; i++) {
+            const dice = document.createElement('div');
+            dice.className = `dice ${sizeClass}`;
+            dice.innerText = '?';
+            container.appendChild(dice);
+        }
+    }
+
+    function updateDiceCount(val) {
+        if (isRolling) return;
+        const newCount = diceCount + val;
+        if (newCount >= 2 && newCount <= 5) {
+            diceCount = newCount;
+            document.getElementById('dice-count-display').innerText = diceCount;
+            initDice();
+        }
+    }
+
+    function handleRollClick() {
+        if (isRolling) return;
+        clickCount++;
+        const btn = document.getElementById('roll-btn');
+        const status = document.getElementById('status-text');
+
+        if (clickCount === 1) {
+            btn.classList.add('charging');
+            timer = setTimeout(() => {
+                if (clickCount < 5) {
+                    resetClicks();
+                    alert("시간 초과! 더 빨리 누르세요!");
+                }
+            }, 3000);
+        }
+
+        status.innerText = `3초 안에 5번 누르세요! (${clickCount}/5)`;
+
+        if (clickCount >= 5) {
+            clearTimeout(timer);
+            startRolling();
+        }
+    }
+
+    function resetClicks() {
+        clickCount = 0;
+        document.getElementById('roll-btn').classList.remove('charging');
+        document.getElementById('status-text').innerText = "3초 안에 5번 누르세요! (0/5)";
+    }
+
+    function startRolling() {
+        isRolling = true;
+        const diceElements = document.querySelectorAll('.dice');
+        const btn = document.getElementById('roll-btn');
+        btn.disabled = true;
+        btn.innerText = "굴리는 중...";
+
+        diceElements.forEach(d => d.classList.add('rolling'));
+
+        setTimeout(() => {
+            diceElements.forEach(d => {
+                d.classList.remove('rolling');
+                d.innerText = Math.floor(Math.random() * 6) + 1;
+                // 랜덤한 각도로 멈춰서 자연스럽게 연출
+                d.style.transform = `rotate(${Math.random() * 16 - 8}deg)`;
+            });
+            
+            isRolling = false;
+            btn.disabled = false;
+            btn.innerText = "주사위 굴리기";
+            resetClicks();
+        }, 1200);
+    }
+
+    initDice();
+</script>
+
+</body>
+</html>
